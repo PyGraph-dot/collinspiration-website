@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 221 70% 45.1%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 30 45% 37.3%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 221 70% 45.1%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 221 70% 45.1%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 30 45% 37.3%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 221 70% 45.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-playfair;
+  }
+}
+
+@layer components {
+  .container {
+    @apply px-4 mx-auto max-w-7xl;
+  }
+
+  .btn-primary {
+    @apply px-8 py-3 font-semibold text-white transition-all duration-150 rounded-button bg-primary hover:bg-opacity-90 whitespace-nowrap inline-flex items-center justify-center;
+  }
+
+  .btn-secondary {
+    @apply px-8 py-3 font-semibold text-primary transition-all duration-150 bg-white rounded-button hover:bg-opacity-90 whitespace-nowrap inline-flex items-center justify-center;
+  }
+
+  .btn-tertiary {
+    @apply px-8 py-3 font-semibold text-primary transition-all duration-150 bg-transparent border border-primary rounded-button hover:bg-primary hover:text-white whitespace-nowrap inline-flex items-center justify-center;
+  }
+
+  .btn-book {
+    @apply px-4 py-2 text-sm font-medium transition-all duration-150 rounded-button whitespace-nowrap inline-flex items-center justify-center;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold text-gray-900 mb-6 md:text-4xl;
+  }
+
+  .section-subtitle {
+    @apply text-lg text-gray-700 mb-8 leading-relaxed;
+  }
+}
