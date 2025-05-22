@@ -27,7 +27,7 @@ const pacifico = Pacifico({
 export const metadata: Metadata = {
   title: "Collinspiration - English Learning Books by Mr. Collins",
   description: "Premium educational resources for English language learning by Mr. Collins",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({

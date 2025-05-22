@@ -1,17 +1,7 @@
-import { PrismaClient } from "@prisma/client"
+import { neon } from "@neondatabase/serverless"
 
-const prismaClientSingleton = () => {
-  return new PrismaClient()
-}
+// Create a SQL client with only supported options
+export const sql = neon(process.env.DATABASE_URL!)
 
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientSingleton | undefined
-}
-
-const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
-
-export default prisma
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+// Also export as default for compatibility
+export default sql
