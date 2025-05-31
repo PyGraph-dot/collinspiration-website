@@ -2,7 +2,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { v2 as cloudinary } from 'cloudinary'; // Import Cloudinary SDK
+import { v2 as cloudinary } from 'cloudinary';
+import type { UploadApiResponse } from 'cloudinary'; // Ensure this is here
 
 // Configure Cloudinary with your credentials from .env
 cloudinary.config({
@@ -15,13 +16,13 @@ export async function POST(req: Request) {
   try {
     // Authenticate and authorize the user (only admins can upload images)
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "ADMIN") {
+    if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // Parse the incoming form data (which contains the file)
     const formData = await req.formData();
-    const file = formData.get('file') as File; // 'file' should match the FormData key from the client
+    const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json({ message: "No file uploaded." }, { status: 400 });
@@ -31,27 +32,25 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Cloudinary
-    // Use a Promise to handle the Cloudinary upload stream
-    const result = await new Promise((resolve, reject) => {
+    // Upload to Cloudinary with explicit result typing
+    const imageUrl: string = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          folder: 'collinspiration-books', // Optional: specify a folder in your Cloudinary account
-          resource_type: 'image', // Ensure it's treated as an image
+          folder: 'collinspiration-books',
+          resource_type: 'image',
           // You can add more options here, e.g., transformations, tags
         },
-        (error, uploadResult) => {
-          if (error) {
+        (error, result: UploadApiResponse | undefined) => { // Explicit type here
+          if (result) {
+            const imageUrl = result.secure_url || result.url;
+            resolve(imageUrl);
+          } else if (error) {
             console.error("Cloudinary upload error:", error);
-            return reject(error);
+            reject(error);
           }
-          resolve(uploadResult);
         }
-      ).end(buffer); // End the stream with the image buffer
+      ).end(buffer);
     });
-
-    // @ts-ignore - result is guaranteed to have url if successful
-    const imageUrl = result.secure_url || result.url; // Get the secure URL of the uploaded image
 
     if (!imageUrl) {
       throw new Error("Cloudinary did not return a valid image URL.");

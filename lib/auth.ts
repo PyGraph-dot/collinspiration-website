@@ -1,126 +1,101 @@
-import type { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { compare } from "bcrypt" // Used for comparing hashed passwords
-import { PrismaClient } from "@prisma/client" // Import Prisma Client to interact with your database
+// lib/auth.ts
+import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { compare } from "bcrypt";
+import prisma from "@/lib/prisma";
+import type { Role } from "@prisma/client"; // Ensure Role is imported here too!
 
-const prisma = new PrismaClient() // Initialize Prisma Client
+// Define the expected type for credentials based on your form
+interface CustomCredentials {
+  email?: string;
+  password?: string;
+  // Add any other custom fields you expect from your login form
+}
 
 export const authOptions: NextAuthOptions = {
-  // Your secret key for NextAuth. It's crucial for security.
-  // In production, this should be a strong, randomly generated string
-  // stored in your environment variables (e.g., NEXTAUTH_SECRET).
-  // 'a-development-secret-key' is only for development.
   secret: process.env.NEXTAUTH_SECRET || "a-development-secret-key",
 
-  // Configure session management. 'jwt' strategy uses JSON Web Tokens.
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // Session will last for 30 days
   },
 
-  // Define custom pages for NextAuth flows (e.g., sign-in, errors)
   pages: {
-    signIn: "/login", // Corrected path to /login, assuming your login page is directly under /login
-    error: "/login",  // Redirect to login page on authentication error
+    signIn: "/login",
+    error: "/login",
   },
 
-  // Define authentication providers
   providers: [
     CredentialsProvider({
-      name: "Credentials", // Name displayed on the login form (e.g., "Sign in with Credentials")
+      name: "Credentials",
       credentials: {
-        // Define the fields expected from the login form
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      // The authorize function is where you validate the user's credentials
       async authorize(credentials) {
-        // Basic validation: Check if email and password were provided
-        if (!credentials?.email || !credentials?.password) {
-          console.log("Authorization attempt: No email or password provided.")
-          return null // Return null to indicate authentication failure
+        const { email, password } = credentials as CustomCredentials;
+
+        if (!email || !password) {
+          console.log("Authorization attempt: No email or password provided.");
+          return null;
         }
 
         try {
-          // Query your database for the user by email using Prisma
           const user = await prisma.user.findUnique({
             where: {
-              email: credentials.email,
+              email: email,
             },
-          })
+          });
 
-          // If no user is found with the provided email
           if (!user) {
-            console.log(`Authorization attempt: User not found for email: ${credentials.email}`)
-            return null // Authentication failed
+            console.log(`Authorization attempt: User not found for email: ${email}`);
+            return null;
           }
 
-          // If the user was found but has no password (e.g., a user created via social login without a password set)
           if (!user.password) {
-            console.log(`Authorization attempt: User ${credentials.email} found but has no password set.`)
-            return null // Authentication failed
+            console.log(`Authorization attempt: User ${email} found but has no password set.`);
+            return null;
           }
 
-          // Compare the provided plaintext password with the hashed password stored in the database
-          const isPasswordValid = await compare(credentials.password, user.password)
+          const isPasswordValid = await compare(password, user.password);
 
-          // If passwords do not match
           if (!isPasswordValid) {
-            console.log(`Authorization attempt: Invalid password for user: ${credentials.email}`)
-            return null // Authentication failed
+            console.log(`Authorization attempt: Invalid password for user: ${email}`);
+            return null;
           }
 
-          // If authentication is successful, return the user object.
-          // NextAuth will serialize this object into the JWT token.
-          // Ensure all necessary user properties (like id, email, name, role) are returned.
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role, // Include the 'role' field, crucial for authorization checks
-          }
+            role: user.role,
+          };
         } catch (error) {
-          console.error("Authorization error during password comparison or database query:", error)
-          return null // Return null on any unexpected error during authorization
-        } finally {
-            // It's good practice to disconnect Prisma client in serverless environments
-            // or when a connection isn't needed after a specific operation.
-            // However, Next.js API routes might manage this differently.
-            // For simple scripts, it's essential, but in API routes, Prisma often handles pooling.
-            // If you face issues with connection pooling, you might manage this more carefully.
-            await prisma.$disconnect();
+          console.error("Authorization error during password comparison or database query:", error);
+          return null;
         }
       },
     }),
   ],
 
-  // Callbacks are used to modify the JWT token and session object
   callbacks: {
-    // This callback is called whenever a JWT is created or updated
     async jwt({ token, user }) {
-      // If a user object is available (i.e., during initial sign-in),
-      // add user-specific properties to the token.
+      // Add user properties to the token on sign-in
       if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.name = user.name
-        token.role = user.role // Add user's role to the token
+        token.id = user.id;
+        token.role = user.role; // Assuming user.role is of type Role from your DB
       }
-      return token
+      return token;
     },
-    // This callback is called whenever a session is accessed (e.g., by useSession())
     async session({ session, token }) {
-      // If a token is available, populate the session.user object with token properties.
-      if (token) {
-        session.user.id = token.id as string
-        session.user.name = token.name as string
-        session.user.email = token.email as string
-        session.user.role = token.role as string // Add user's role to the session
+      // Add token properties to the session
+      if (session.user && token.role) {
+        session.user.role = token.role as Role; // Explicitly cast token.role to Role
+        session.user.id = token.id as string; // Explicitly cast token.id to string
       }
-      return session
+      return session;
     },
   },
 
-  // Enable debug mode in development for more verbose logging
   debug: process.env.NODE_ENV === "development",
-}
+};

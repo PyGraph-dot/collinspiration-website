@@ -1,10 +1,18 @@
 // app/api/categories/route.ts
 import { NextResponse } from "next/server";
 // import prisma from "@/lib/prisma"; // <--- REMOVE THIS LINE if you're using direct SQL
-// import { getServerSession } from "next-auth/next";
-// import { authOptions } from "@/lib/auth"; // Your NextAuth configuration
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth"; // Your NextAuth configuration
 
 import { sql } from '@vercel/postgres'; // Assuming you're using Vercel Postgres client or similar, adjust path as needed
+import { z } from "zod";
+
+// Zod schema for category creation
+const CategoryCreateSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  status: z.string().optional(),
+});
 
 export async function GET() {
   try {
@@ -35,19 +43,23 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    // You should add Zod validation here for the incoming body, similar to how you did for books.
     // Ensure only admins can create categories.
-    // const session = await getServerSession(authOptions);
-    // if (!session || !session.user || session.user.role !== "ADMIN") {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await request.json();
 
-    // Basic validation (consider Zod for robust validation)
-    if (!body.name || !body.description) {
-      return NextResponse.json({ message: "Name and description are required." }, { status: 400 });
+    // Zod validation
+    const parsed = CategoryCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+    const data = parsed.data;
 
     const result = await sql`
       INSERT INTO categories (
@@ -55,9 +67,9 @@ export async function POST(request: Request) {
         description,
         status
       ) VALUES (
-        ${body.name},
-        ${body.description},
-        ${body.status || "active"}
+        ${data.name},
+        ${data.description},
+        ${data.status || "active"}
       ) RETURNING id, name, description, status, created_at as "createdAt", updated_at as "updatedAt";
     `;
 
