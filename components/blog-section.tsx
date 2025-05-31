@@ -1,3 +1,4 @@
+// components/blog-section.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -25,74 +26,43 @@ export default function BlogSection() {
     const fetchBlogPosts = async () => {
       try {
         const response = await fetch("/api/blog")
-        const data = await response.json()
 
-        if (data.length > 0) {
-          setFeaturedPost(data[0])
-          setRecentPosts(data.slice(1, 4)) // Get next 3 posts
+        // Handle cases where the API route doesn't exist or returns an error
+        if (!response.ok) {
+          console.error(`Error fetching blog posts: ${response.status} ${response.statusText}`);
+          // Set to empty/null to trigger the "No posts available" message
+          setFeaturedPost(null);
+          setRecentPosts([]);
+          return; // Exit early if API call fails
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          setFeaturedPost(data[0]);
+          // Ensure there are enough posts before slicing
+          setRecentPosts(data.slice(1, 4));
+        } else {
+          // If data is not an array or is empty, clear posts
+          setFeaturedPost(null);
+          setRecentPosts([]);
         }
       } catch (error) {
-        console.error("Error fetching blog posts:", error)
+        console.error("Error fetching blog posts:", error);
+        // Clear posts on any other fetch error
+        setFeaturedPost(null);
+        setRecentPosts([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
     fetchBlogPosts()
   }, [])
 
-  // Fallback blog posts in case API fails
-  const fallbackPosts = [
-    {
-      id: "1",
-      title: "The Power of Daily Reading: Transform Your English in Just 20 Minutes a Day",
-      slug: "power-of-daily-reading",
-      excerpt:
-        "Discover how establishing a consistent daily reading habit can dramatically improve your vocabulary, comprehension, and overall English proficiency.",
-      content: "Full content here...",
-      coverImage: "/images/blog/daily-reading.jpg",
-      category: "Reading",
-      publishedAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      title: "5 Common Grammar Mistakes Even Advanced Learners Make",
-      slug: "5-common-grammar-mistakes",
-      excerpt:
-        "Explore the subtle grammar errors that persist even among proficient English speakers, and learn practical strategies to eliminate them from your writing and speech.",
-      content: "Full content here...",
-      coverImage: "/images/blog/grammar-mistakes.jpg",
-      category: "Grammar",
-      publishedAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      id: "3",
-      title: "Building Confidence in Public Speaking: A Step-by-Step Approach",
-      slug: "building-confidence-public-speaking",
-      excerpt:
-        "Learn practical techniques to overcome anxiety and develop poise when speaking English in public settings, from classroom presentations to professional conferences.",
-      content: "Full content here...",
-      coverImage: "/images/blog/public-speaking.jpg",
-      category: "Speaking",
-      publishedAt: new Date(Date.now() - 172800000).toISOString(),
-    },
-    {
-      id: "4",
-      title: "Advanced Literary Analysis Techniques for English Learners",
-      slug: "advanced-literary-analysis",
-      excerpt:
-        "Discover how to analyze English literature like a professional critic, enhancing your understanding and appreciation of classic and contemporary works.",
-      content: "Full content here...",
-      coverImage: "/images/blog/literary-analysis.jpg",
-      category: "Literature",
-      publishedAt: new Date(Date.now() - 259200000).toISOString(),
-    },
-  ]
+  // Removed fallbackPosts as per your request
 
-  // Use fallback posts if API returns empty array
-  const displayFeaturedPost = featuredPost || fallbackPosts[0]
-  const displayRecentPosts = recentPosts.length > 0 ? recentPosts : fallbackPosts.slice(1)
-
+  // If loading, show skeletons
   if (isLoading) {
     return (
       <section id="blog" className="py-20 bg-gray-50">
@@ -134,6 +104,31 @@ export default function BlogSection() {
     )
   }
 
+  // If not loading and no posts were fetched, show a message
+  if (!featuredPost && recentPosts.length === 0) {
+    return (
+      <section id="blog" className="py-20 bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="section-title">English Learning Blog</h2>
+            <p className="section-subtitle max-w-3xl mx-auto">
+              Explore our collection of articles, tips, and insights to enhance your English language journey.
+            </p>
+          </div>
+          <div className="text-center py-10">
+            <p className="text-gray-500">No blog posts available at the moment. Check back soon!</p>
+          </div>
+          <div className="text-center mt-12">
+            <Link href="/blog" className="btn-primary">
+              View All Articles
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // If posts are available, render them
   return (
     <section id="blog" className="py-20 bg-gray-50">
       <div className="container">
@@ -144,25 +139,26 @@ export default function BlogSection() {
           </p>
         </div>
 
-        {displayFeaturedPost && (
+        {/* Render featured post only if it exists */}
+        {featuredPost && (
           <div className="bg-white rounded shadow-lg overflow-hidden mb-12 transition-transform hover:-translate-y-1">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="h-64 md:h-auto overflow-hidden">
                 <Image
-                  src={displayFeaturedPost.coverImage || "/images/placeholder-blog.jpg"}
-                  alt={displayFeaturedPost.title}
+                  src={featuredPost.coverImage || "/images/placeholder-blog.jpg"}
+                  alt={featuredPost.title}
                   width={800}
                   height={600}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-8 flex flex-col justify-center">
-                <div className="text-primary font-semibold text-sm mb-2">{displayFeaturedPost.category}</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{displayFeaturedPost.title}</h3>
-                <p className="text-gray-700 mb-6">{displayFeaturedPost.excerpt}</p>
+                <div className="text-primary font-semibold text-sm mb-2">{featuredPost.category}</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">{featuredPost.title}</h3>
+                <p className="text-gray-700 mb-6">{featuredPost.excerpt}</p>
                 <div>
                   <Link
-                    href={`/blog/${displayFeaturedPost.slug}`}
+                    href={`/blog/${featuredPost.slug}`}
                     className="text-primary font-semibold flex items-center hover:underline"
                   >
                     Read Full Article <ArrowRight className="ml-2 h-4 w-4" />
@@ -173,9 +169,10 @@ export default function BlogSection() {
           </div>
         )}
 
-        {displayRecentPosts.length > 0 && (
+        {/* Render recent posts only if there are any */}
+        {recentPosts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayRecentPosts.map((post) => (
+            {recentPosts.map((post) => (
               <div
                 key={post.id}
                 className="bg-white rounded shadow-lg overflow-hidden transition-transform hover:-translate-y-1"

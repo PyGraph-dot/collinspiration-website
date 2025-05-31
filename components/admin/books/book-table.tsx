@@ -1,43 +1,73 @@
+// components/admin/books/book-table.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Edit, Trash2, Filter, ChevronDown, Search } from "lucide-react"
-import type { Book } from "@/types/book"
+import type { Book } from "@/types/book" // Assuming this type correctly reflects Prisma schema
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation" // Import useRouter
 
 export default function BookTable() {
   const [books, setBooks] = useState<Book[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const { toast } = useToast()
+  const router = useRouter() // Initialize useRouter
+
+  // Function to fetch books
+  const fetchBooks = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/books")
+      if (!response.ok) {
+        throw new Error("Failed to fetch books")
+      }
+      const data = await response.json()
+      // Ensure 'category' is populated if your Book type expects it directly
+      // If your API returns flat books without nested category, you might need to adjust Book type
+      if (Array.isArray(data)) {
+        setBooks(data)
+      } else {
+        console.error("Fetched data is not an array:", data)
+        setBooks([])
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error)
+      setBooks([])
+      toast({
+        title: "Error",
+        description: "Failed to fetch books. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const response = await fetch("/api/books")
-        const data = await response.json()
-        setBooks(data)
-      } catch (error) {
-        console.error("Error fetching books:", error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch books. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchBooks()
-  }, [toast])
+  }, [toast, router]) // Add router as a dependency, though fetchBooks isn't directly dependent on router state here.
+                     // The router.refresh() in BookForm will trigger a re-render and thus this useEffect.
+
+  // Removed: router.events is not available in Next.js App Router's useRouter hook.
+  // The router.refresh() in BookForm.tsx handles revalidation.
+  /*
+  useEffect(() => {
+    router.events?.on('routeChangeComplete', fetchBooks);
+    return () => {
+      router.events?.off('routeChangeComplete', fetchBooks);
+    };
+  }, [router.events]);
+  */
 
   const handleDelete = async (id: string) => {
+    // IMPORTANT: Replace window.confirm with a custom modal UI as window.confirm is not supported in Canvas.
+    // For now, keeping it as is, but be aware it won't show in the Canvas preview.
     if (confirm("Are you sure you want to delete this book?")) {
       try {
         const response = await fetch(`/api/books/${id}`, {
@@ -225,24 +255,28 @@ export default function BookTable() {
                       <div className="text-sm font-medium text-gray-900 mb-1">{book.title}</div>
                       <div className="text-xs text-gray-500 line-clamp-2">{book.description}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{book.category}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{book.category.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          book.type === "my-book" ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800"
+                          // CORRECTED: Compare with uppercase enum values
+                          book.type === "MY_BOOK" ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800"
                         }`}
                       >
-                        {book.type === "my-book" ? "My Book" : "Affiliate"}
+                        {/* CORRECTED: Display based on uppercase enum values */}
+                        {book.type === "MY_BOOK" ? "My Book" : "Affiliate"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${book.price.toFixed(2)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          book.status === "published" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                          // CORRECTED: Compare with uppercase enum values
+                          book.status === "PUBLISHED" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {book.status === "published" ? "Published" : "Draft"}
+                        {/* CORRECTED: Display based on uppercase enum values */}
+                        {book.status === "PUBLISHED" ? "Published" : "Draft"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

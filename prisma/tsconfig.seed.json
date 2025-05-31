@@ -1,0 +1,13 @@
+// prisma/tsconfig.seed.json
+{
+  "extends": "../tsconfig.json", // Extend your main tsconfig if you have one
+  "compilerOptions": {
+    "module": "CommonJS", // This is the crucial option for ts-node
+    "outDir": "../dist-seed", // Temporary output directory for compiled seed
+    "noEmit": false, // Allow ts-node to emit if needed
+    "esModuleInterop": true // Important for import/require compatibility
+  },
+  "include": [
+    "seed.ts" // Only include the seed file in this config
+  ]
+}

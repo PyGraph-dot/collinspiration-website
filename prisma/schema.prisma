@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,34 +11,116 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  // IMPORTANT CHANGE: Renamed from 'hashedPassword' to 'password'
+  // and made it non-nullable (String instead of String?) for NextAuth.js credentials provider
+  password      String    
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Fields for NextAuth Prisma Adapter - Ensure these are present
+  // 'emailVerifiedAt' was the original cause of P2022 error, now it's correctly mapped
+  emailVerified DateTime? @map("emailVerifiedAt")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  
+  // If User can author blog articles, you might add this relation later:
+  // blogArticles  BlogArticle[] 
 }
 
-model Book {
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
   id           String   @id @default(cuid())
-  title        String
-  description  String
-  coverImage   String
-  price        Float
-  category     String
-  type         String   // 'my-book' or 'affiliate'
-  amazonLink   String?
-  nigerianLink String?
-  status       String   // 'published' or 'draft'
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enum for user roles (e.g., for authorization)
+enum Role {
+  USER
+  ADMIN
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String
+  id          String    @id @default(cuid())
+  name        String    @unique
   description String?
-  status      String   // 'active' or 'inactive'
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    @default("active") // Assuming 'active'/'inactive' or similar string status
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  books       Book[]
+}
+
+model Book {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  coverImage  String? // Nullable if not always required
+  price       Float
+  type        BookType  @default(MY_BOOK) // Using BookType enum
+  amazonLink  String?
+  nigerianLink String?
+  status      BookStatus @default(DRAFT) // Using BookStatus enum
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+}
+
+// Enum for book types
+enum BookType {
+  MY_BOOK
+  AFFILIATE
+}
+
+// Enum for book status
+enum BookStatus {
+  PUBLISHED
+  DRAFT
+}
+
+model BlogArticle { 
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique // For SEO-friendly URLs
+  content     String
+  coverImage  String?
+  status      ArticleStatus @default(DRAFT) // Using ArticleStatus enum
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // If you want to link blog articles to a User (e.g., author), add this:
+  // authorId    String?
+  // author      User?         @relation(fields: [authorId], references: [id])
+}
+
+// Enum for blog article status
+enum ArticleStatus {
+  PUBLISHED
+  DRAFT
 }

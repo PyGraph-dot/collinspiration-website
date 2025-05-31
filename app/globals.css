@@ -27,6 +27,11 @@
   }
 
   .dark {
+    /* This block does nothing unless you use .dark as a class on every element */
+  }
+
+  .dark :root,
+  :root.dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
