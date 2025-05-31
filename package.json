@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed:run": "ts-node --project prisma/tsconfig.seed.json prisma/seed.ts"
+    "seed:run": "ts-node --project prisma/tsconfig.seed.json prisma/seed.ts",
+    "postbuild": "prisma migrate deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
