@@ -3,7 +3,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Playfair_Display, Open_Sans, Pacifico } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeContextProvider } from "@/components/providers/theme-context-provider"
 
 // NEW IMPORTS FOR NEXT-AUTH
 import NextAuthSessionProvider from '@/components/providers/next-auth-provider';
@@ -47,7 +47,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -55,9 +55,9 @@ export default async function RootLayout({
         className={`${inter.variable} ${playfair.variable} ${openSans.variable} ${pacifico.variable} font-open-sans`}
       >
         <NextAuthSessionProvider session={session}>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <ThemeContextProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             {children}
-          </ThemeProvider>
+          </ThemeContextProvider>
         </NextAuthSessionProvider>
       </body>
     </html>

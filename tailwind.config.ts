@@ -1,13 +1,15 @@
-import type { Config } from "tailwindcss"
+// tailwind.config.ts
+import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate"; // <--- Import plugin using ES Module syntax
 
 const config = {
-  darkMode: ["class"],
+  darkMode: "class", // <--- CORRECTED: Changed from ["class"] to "class" (string literal)
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./*.{js,ts,jsx,tsx,mdx}",
   ],
   prefix: "",
   theme: {
@@ -20,6 +22,7 @@ const config = {
     },
     extend: {
       fontFamily: {
+        inter: ["var(--font-inter)"],
         playfair: ["var(--font-playfair)"],
         "open-sans": ["var(--font-open-sans)"],
         pacifico: ["var(--font-pacifico)"],
@@ -58,6 +61,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "chart-1": "hsl(var(--chart-1))",
+        "chart-2": "hsl(var(--chart-2))",
+        "chart-3": "hsl(var(--chart-3))",
+        "chart-4": "hsl(var(--chart-4))",
+        "chart-5": "hsl(var(--chart-5))",
+        "sidebar-background": "hsl(var(--sidebar-background))",
+        "sidebar-foreground": "hsl(var(--sidebar-foreground))",
+        "sidebar-primary": "hsl(var(--sidebar-primary))",
+        "sidebar-primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+        "sidebar-accent": "hsl(var(--sidebar-accent))",
+        "sidebar-accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+        "sidebar-border": "hsl(var(--sidebar-border))",
+        "sidebar-ring": "hsl(var(--sidebar-ring))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -81,7 +97,7 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config
+  plugins: [tailwindcssAnimate],
+} satisfies Config;
 
-export default config
+export default config;
