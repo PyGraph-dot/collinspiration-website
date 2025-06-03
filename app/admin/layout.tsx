@@ -1,72 +1,173 @@
-// app/admin/layout.tsx
-import { getServerSession } from "next-auth/next" // For server-side session checks
-import { authOptions } from "@/lib/auth" // Your NextAuth configuration
-import { redirect } from "next/navigation" // For redirecting unauthenticated users
-import Link from "next/link"
-import { Separator } from "@/components/ui/separator" // Assuming you have Shadcn UI Separator
-import { Button } from "@/components/ui/button" // Assuming you have Shadcn UI Button
-import { Home, Book, FileText, Users, Settings, LogOut } from "lucide-react" // Icons
+// app/api/books/[id]/route.ts
+import { NextResponse, NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { revalidatePath } from 'next/cache';
+import type { Session } from "next-auth"; // Import Session type
 
-// --- Navigation Links Data ---
-const navLinks = [
-  { name: "Dashboard", href: "/admin", icon: Home },
-  { name: "Books", href: "/admin/books", icon: Book },
-  { name: "Blog Articles", href: "/admin/blog", icon: FileText },
-  // { name: "Users", href: "/admin/users", icon: Users }, // Uncomment if you add user management
-  // { name: "Settings", href: "/admin/settings", icon: Settings }, // Uncomment if you add settings
-];
+// Define a type for the user in the session that includes the role
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const session = await getServerSession(authOptions);
+// Extend the Session type to include the custom user type
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
 
-  // Check if user is authenticated and has ADMIN role
-  if (!session || !session.user || session.user.role !== "ADMIN") {
-    // Redirect to login or a forbidden page if not authorized
-    redirect("/login?callbackUrl=/admin"); // Redirect to login, passing the admin URL as callback
+// --- CORRECTED ZOD SCHEMA FOR UPDATES ---
+const bookUpdateSchema = z.object({
+  title: z.string().min(3, { message: "Title must be at least 3 characters." }).max(255).optional(),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }).optional(),
+  coverImage: z.string().url("Invalid cover image URL").nullable().optional(),
+  price: z.number().positive({ message: "Price must be a positive number." }).optional(),
+  categoryId: z.string().min(1, { message: "Category ID must be provided if updated." }).optional(),
+  type: z.enum(["MY_BOOK", "AFFILIATE"], { errorMap: () => ({ message: "Please select a book type." }) }).optional(), // CORRECTED: Uppercase enum values
+  amazonLink: z.union([z.string().url("Invalid Amazon link URL"), z.literal('')]).transform(e => e === '' ? null : e).nullable().optional(),
+  nigerianLink: z.union([z.string().url("Invalid Nigerian link URL"), z.literal('')]).transform(e => e === '' ? null : e).nullable().optional(),
+  status: z.enum(["PUBLISHED", "DRAFT"], { errorMap: () => ({ message: "Please select a status." }) }).optional(), // CORRECTED: Uppercase enum values
+});
+// --- END OF CORRECTED ZOD SCHEMA ---
+
+// --- GET (Fetch a single book by ID) ---
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { bookId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { bookId } = params;
+
+    if (!bookId) {
+      return NextResponse.json({ message: "Book ID is required" }, { status: 400 });
+    }
+
+    const book = await prisma.book.findUnique({
+      where: { id: bookId },
+      include: { category: true },
+    });
+
+    if (!book) {
+      return NextResponse.json({ message: "Book not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(book, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching book:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
+}
 
-  return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-gray-800 p-6 shadow-md flex flex-col">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Admin Panel</h2>
-        <nav className="space-y-2">
-          {navLinks.map((link) => (
-            <Button
-              key={link.name}
-              asChild
-              variant="ghost"
-              className="w-full justify-start text-lg px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              <Link href={link.href}>
-                <link.icon className="mr-3 h-5 w-5" />
-                {link.name}
-              </Link>
-            </Button>
-          ))}
-          <Separator className="my-4" />
-          <Button
-            asChild
-            variant="ghost"
-            className="w-full justify-start text-lg px-4 py-2 text-red-500 hover:text-red-600 hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            {/* For logout, you'd typically have a form or a separate client component that calls signOut() */}
-            <Link href="/api/auth/signout"> {/* This will trigger NextAuth's signout flow */}
-              <LogOut className="mr-3 h-5 w-5" />
-              Logout
-            </Link>
-          </Button>
-        </nav>
-      </aside>
+// --- PUT (Update a book by ID) ---
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { bookId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-auto">
-        {children} {/* This is where your page content will be rendered */}
-      </main>
-    </div>
-  )
+    const { bookId } = params;
+    if (!bookId) {
+      return NextResponse.json({ message: "Book ID is required" }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const validatedData = bookUpdateSchema.safeParse(body);
+
+    if (!validatedData.success) {
+      console.error("Validation error:", validatedData.error.errors);
+      return NextResponse.json(
+        { message: "Invalid request data", errors: validatedData.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { categoryId, ...bookUpdateData } = validatedData.data;
+
+    const dataForPrisma = {
+      ...bookUpdateData,
+      ...(categoryId !== undefined && { category: { connect: { id: categoryId } } }),
+    };
+
+    const updatedBook = await prisma.book.update({
+      where: { id: bookId },
+      data: dataForPrisma,
+    });
+
+    revalidatePath(`/admin/books/${bookId}`);
+    revalidatePath('/admin/books');
+    revalidatePath('/');
+
+    return NextResponse.json(updatedBook, { status: 200 });
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// --- DELETE (Delete a book by ID) ---
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { bookId: string } } // Keep params for consistency, but we'll parse directly
+) {
+  try {
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
+
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const bookId = url.pathname.split('/').pop();
+
+    console.log('DELETE request received for bookId (from URL parse):', bookId);
+
+    if (!bookId) {
+      console.log('Book ID is missing or empty after URL parse, returning 400.');
+      return NextResponse.json({ message: "Book ID is required" }, { status: 400 });
+    }
+
+    const existingBook = await prisma.book.findUnique({
+      where: { id: bookId },
+    });
+
+    console.log('Existing book found:', existingBook ? 'Yes' : 'No');
+
+    if (!existingBook) {
+      return NextResponse.json({ message: "Book not found" }, { status: 404 });
+    }
+
+    await prisma.book.delete({
+      where: { id: bookId },
+    });
+
+    revalidatePath('/admin/books');
+    revalidatePath('/');
+
+    return NextResponse.json({ message: "Book deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

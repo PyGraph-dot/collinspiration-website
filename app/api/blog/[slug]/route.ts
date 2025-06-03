@@ -1,10 +1,26 @@
+// app/api/blog/[slug]/route.ts
+
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Adjust path if needed
-import { retryOperation } from "@/lib/utils"; //
+import prisma from "@/lib/prisma";
+import { retryOperation } from "@/lib/utils";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth"; // Adjust path if needed
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 import { revalidatePath } from 'next/cache';
+import type { Session } from "next-auth"; // Import Session type
+
+// Define a type for the user in the session that includes the role
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
+
+// Extend the Session type to include the custom user type
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
 
 // Zod schema for validating incoming blog article data when updating an article
 const blogArticleUpdateSchema = z.object({
@@ -56,8 +72,8 @@ export async function PUT(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "ADMIN") {
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
+    if (!session || !session.user || session.user.role !== "ADMIN") { // <--- CORRECTED: No more 'as any'
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -110,12 +126,12 @@ export async function DELETE(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user || (session.user as any).role !== "ADMIN") {
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
+    if (!session || !session.user || session.user.role !== "ADMIN") { // <--- CORRECTED: No more 'as any'
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { slug } = params;
+    const { slug } = params; // <--- CORRECTED: Use slug from params directly
     console.log(`DELETE request received for blog article slug: ${slug}`);
 
     const existingArticle = await retryOperation(async () => {

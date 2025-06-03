@@ -2,16 +2,23 @@
 
 import { BookForm } from "@/components/admin/books/book-form";
 import prisma from "@/lib/prisma";
-import { notFound } from "next/navigation"; // Used for handling cases where the book is not found
-import { type Category } from "@/types/book"; // Assuming Category interface is in types/book.ts
+import { notFound } from "next/navigation";
+import { type Category } from "@/types/book";
+// Removed: import type { PageProps } from 'next'; // This import was causing the error
 
-interface EditBookPageProps {
+// Removed: interface EditBookPageProps extends PageProps<{ bookId: string }> {}
+// Instead, we will define the params type directly in the function signature.
+
+export default async function EditBookPage({
+  params, // Destructure params directly
+}: {
+  // Define the type for params inline here
   params: {
     bookId: string;
   };
-}
-
-export default async function EditBookPage({ params }: EditBookPageProps) {
+  // If this page component were to accept searchParams, you would define them here:
+  // searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const { bookId } = params;
 
   // Fetch the specific book from the database using its ID

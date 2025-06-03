@@ -1,10 +1,24 @@
-// app/api/books/[bookId]/route.ts
+// app/api/books/[id]/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from 'next/cache';
+import type { Session } from "next-auth"; // Import Session type
+
+// Define a type for the user in the session that includes the role
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
+
+// Extend the Session type to include the custom user type
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
 
 // --- CORRECTED ZOD SCHEMA FOR UPDATES ---
 const bookUpdateSchema = z.object({
@@ -26,7 +40,7 @@ export async function GET(
   { params }: { params: { bookId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
@@ -62,7 +76,7 @@ export async function PUT(
   { params }: { params: { bookId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
@@ -112,10 +126,10 @@ export async function PUT(
 // --- DELETE (Delete a book by ID) ---
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { bookId: string } }
+  // { params }: { params: { bookId: string } } // <--- REMOVED: params is not used directly here
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
 
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
