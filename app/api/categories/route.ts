@@ -1,11 +1,23 @@
 // app/api/categories/route.ts
 import { NextResponse } from "next/server";
-// import prisma from "@/lib/prisma"; // <--- REMOVE THIS LINE if you're using direct SQL
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth"; // Your NextAuth configuration
-
 import { sql } from '@vercel/postgres'; // Assuming you're using Vercel Postgres client or similar, adjust path as needed
 import { z } from "zod";
+import type { Session } from "next-auth"; // <--- ADDED: Import Session type
+
+// --- ADDED: Type definitions for custom session user and session ---
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
+
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
+// --- END ADDED ---
 
 // Zod schema for category creation
 const CategoryCreateSchema = z.object({
@@ -17,7 +29,7 @@ const CategoryCreateSchema = z.object({
 export async function GET() {
   try {
     // You might want to add authentication here if only admins should fetch all categories
-    // const session = await getServerSession(authOptions);
+    // const session = await getServerSession(authOptions) as CustomSession; // <--- ADDED: Cast session to CustomSession
     // if (!session || !session.user || session.user.role !== "ADMIN") {
     //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     // }
@@ -44,7 +56,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     // Ensure only admins can create categories.
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession; // <--- ADDED: Cast session to CustomSession
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

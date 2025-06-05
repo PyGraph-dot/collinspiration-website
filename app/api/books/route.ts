@@ -5,6 +5,20 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from 'next/cache';
+import type { Session } from "next-auth"; // Import Session type
+
+// Define a type for the user in the session that includes the role
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
+
+// Extend the Session type to include the custom user type
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
 
 // --- Zod schema for validating incoming book data when creating a new book ---
 const bookSchema = z.object({
@@ -38,11 +52,14 @@ async function retryOperation<T>(
   while (attempts < maxRetries) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: unknown) { // <--- CORRECTED: Changed 'any' to 'unknown'
       attempts++;
-      console.warn(`Attempt ${attempts}/${maxRetries} failed: ${error.message}`);
+      const errorMessage = (error instanceof Error) ? error.message : String(error); // Safely get error message
+      const errorCode = (error && typeof error === 'object' && 'code' in error) ? (error as { code: string }).code : undefined; // Safely get error code
+
+      console.warn(`Attempt ${attempts}/${maxRetries} failed: ${errorMessage}`);
       // Only retry if it's a P1001 (connection error) and we haven't exhausted retries
-      if (error.code === 'P1001' && attempts < maxRetries) {
+      if (errorCode === 'P1001' && attempts < maxRetries) {
         console.log(`Retrying operation after ${delayMs}ms due to database connection error...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
         // Optional: Implement exponential backoff here if needed (e.g., delayMs *= 2;)
@@ -89,7 +106,7 @@ export async function GET() {
 // --- POST (Create a new book - your existing code) ---
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

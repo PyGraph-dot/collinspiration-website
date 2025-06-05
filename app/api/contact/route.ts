@@ -1,3 +1,4 @@
+// app/api/contact/route.ts
 import { NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { z } from "zod"
@@ -28,16 +29,17 @@ export async function POST(request: Request) {
     }
     const data = parsed.data
 
-    const result = await sql`
+    // Corrected: Renamed 'result' to '_result' to indicate it's intentionally unused
+    const _result = await sql`
       INSERT INTO contact_messages (
-        name, 
-        email, 
-        subject, 
+        name,
+        email,
+        subject,
         message
       ) VALUES (
-        ${data.name}, 
-        ${data.email}, 
-        ${data.subject}, 
+        ${data.name},
+        ${data.email},
+        ${data.subject},
         ${data.message}
       ) RETURNING *
     `
@@ -48,15 +50,20 @@ export async function POST(request: Request) {
       success: true,
       message: "Your message has been sent successfully!",
     })
-  } catch (error: any) {
+  } catch (error: unknown) { // Corrected: Changed 'any' to 'unknown'
     console.error("Error submitting contact form:", error)
     // Provide more specific error messages if possible
     let errorMessage = "Failed to submit your message. Please try again."
-    if (error?.code === "23505") {
+
+    // Safely access properties of the error object
+    if (error && typeof error === 'object' && 'code' in error && error.code === "23505") {
       errorMessage = "A message with this email already exists."
-    } else if (error?.message) {
+    } else if (error instanceof Error) { // Check if it's a standard Error object
       errorMessage = error.message
+    } else if (typeof error === 'string') { // Handle cases where error might be a string
+      errorMessage = error;
     }
+
     return NextResponse.json(
       {
         success: false,

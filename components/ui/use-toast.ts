@@ -9,7 +9,9 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// CORRECTED: Changed TOAST_REMOVE_DELAY to a more typical value (1 second)
+// This delay is usually for removing the toast from the DOM *after* it has visually disappeared.
+const TOAST_REMOVE_DELAY = 1000 // 1 second
 
 type ToasterToast = ToastProps & {
   id: string
@@ -59,8 +61,10 @@ interface State {
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 const addToRemoveQueue = (toastId: string) => {
+  // Clear any existing timeout for this toastId before setting a new one
   if (toastTimeouts.has(toastId)) {
-    return
+    clearTimeout(toastTimeouts.get(toastId) as ReturnType<typeof setTimeout>)
+    toastTimeouts.delete(toastId)
   }
 
   const timeout = setTimeout(() => {
@@ -93,8 +97,7 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Side effects - This sets the timer for the toast to be removed from the state array
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -109,7 +112,7 @@ export const reducer = (state: State, action: Action): State => {
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
-                open: false,
+                open: false, // Mark toast as closed visually
               }
             : t
         ),
@@ -159,6 +162,7 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
+        // When the toast is no longer open (e.g., user clicked close or animation finished)
         if (!open) dismiss()
       },
     },
@@ -175,14 +179,19 @@ function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
-    listeners.push(setState)
+    // CORRECTED: Empty dependency array to ensure this effect runs only once on mount
+    // This prevents infinite re-renders caused by 'state' changing and re-running the effect.
+    const listener = (newState: State) => {
+      setState(newState)
+    }
+    listeners.push(listener)
     return () => {
-      const index = listeners.indexOf(setState)
+      const index = listeners.indexOf(listener)
       if (index > -1) {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, []) // Empty dependency array
 
   return {
     ...state,

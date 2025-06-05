@@ -38,10 +38,8 @@ const formSchema = z.object({
     message: "Description must be at least 10 characters.",
   }),
   coverImage: z.any().optional(), // Can be File object or string URL
-  price: z.preprocess(
-    (a) => parseFloat(z.string().parse(a)),
-    z.number().positive({ message: "Price must be a positive number." })
-  ),
+  // CORRECTED: Use z.coerce.number() for more robust type conversion from input, then positive()
+  price: z.coerce.number().positive({ message: "Price must be a positive number." }),
   categoryId: z.string().min(1, { message: "Please select a category." }),
   type: z.enum(["MY_BOOK", "AFFILIATE"], { // Corrected to uppercase
     errorMap: () => ({ message: "Please select a book type." }),
@@ -68,7 +66,8 @@ export function BookForm({ initialData, categories }: BookFormProps) {
       title: initialData.title || "",
       description: initialData.description || "",
       coverImage: initialData.coverImage || undefined,
-      price: initialData.price || 0,
+      // CORRECTED: Ensure price is explicitly a number here, even if it's 0
+      price: Number(initialData.price) || 0,
       categoryId: initialData.categoryId || "",
       type: initialData.type || "MY_BOOK",
       amazonLink: initialData.amazonLink || "",
@@ -78,7 +77,7 @@ export function BookForm({ initialData, categories }: BookFormProps) {
       title: "",
       description: "",
       coverImage: undefined,
-      price: 0,
+      price: 0, // Ensure default price is a number
       categoryId: "",
       type: "MY_BOOK",
       amazonLink: "",

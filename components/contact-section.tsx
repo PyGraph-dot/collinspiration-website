@@ -84,7 +84,7 @@ export default function ContactSection() {
       })
 
       reset()
-    } catch (error) {
+    } catch (_error) { // Corrected: Renamed 'error' to '_error'
       toast({
         title: "Something went wrong!",
         description: "Please try again later.",

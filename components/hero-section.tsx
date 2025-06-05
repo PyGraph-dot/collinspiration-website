@@ -21,7 +21,7 @@ export default function HeroSection() {
             Inspiring English Excellence Through Literature
           </h1>
           <p className="text-xl text-white mb-8 leading-relaxed">
-            Discover the transformative power of language with Mr. Collins' carefully crafted educational books designed
+            Discover the transformative power of language with Mr. Collins&apos; carefully crafted educational books designed {/* Corrected: Escaped apostrophe */}
             to elevate your English proficiency.
           </p>
           <div className="flex flex-wrap gap-4">

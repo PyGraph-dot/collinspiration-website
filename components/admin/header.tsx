@@ -18,7 +18,7 @@ import {
 
 export default function AdminHeader() {
   const { data: session } = useSession()
-  const [notifications, setNotifications] = useState(3)
+  const [notifications, _setNotifications] = useState(3) // Corrected: Renamed setNotifications to _setNotifications
 
   return (
     <header className="bg-white shadow-sm z-10 sticky top-0">
@@ -58,7 +58,7 @@ export default function AdminHeader() {
                   <div className="flex flex-col space-y-1">
                     <span className="font-medium">New book added</span>
                     <span className="text-sm text-muted-foreground">
-                      You added "Creative Marketing" to your collection
+                      You added &quot;Creative Marketing&quot; to your collection {/* Corrected: Escaped quotes */}
                     </span>
                     <span className="text-xs text-gray-400">2 hours ago</span>
                   </div>
@@ -66,7 +66,7 @@ export default function AdminHeader() {
                 <DropdownMenuItem className="py-3 cursor-pointer">
                   <div className="flex flex-col space-y-1">
                     <span className="font-medium">New sale</span>
-                    <span className="text-sm text-muted-foreground">You sold 5 copies of "Financial Freedom"</span>
+                    <span className="text-sm text-muted-foreground">You sold 5 copies of &quot;Financial Freedom&quot;</span> {/* Corrected: Escaped quotes */}
                     <span className="text-xs text-gray-400">5 hours ago</span>
                   </div>
                 </DropdownMenuItem>

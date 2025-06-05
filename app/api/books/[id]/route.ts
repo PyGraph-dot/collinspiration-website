@@ -126,7 +126,9 @@ export async function PUT(
 // --- DELETE (Delete a book by ID) ---
 export async function DELETE(
   req: NextRequest,
-  // { params }: { params: { bookId: string } } // <--- REMOVED: params is not used directly here
+  // Removed the params argument entirely as it's not used when parsing from URL
+  // If you decide to use params directly in the future, re-add it:
+  // { params }: { params: { bookId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions) as CustomSession; // <--- CORRECTED: Cast session to CustomSession

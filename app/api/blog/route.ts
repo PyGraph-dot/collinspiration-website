@@ -1,12 +1,26 @@
+// app/api/blog/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Adjust path if needed
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth"; // Adjust path if needed
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from 'next/cache';
-import { retryOperation } from "@/lib/utils"; 
+import type { Session } from "next-auth"; // <--- IMPORTANT: This import is crucial
 
-// Zod schema for validating incoming blog article data when creating a new article
+// --- IMPORTANT: Type definitions for custom session user and session ---
+interface SessionUser {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  role: "ADMIN" | "USER"; // Define possible roles
+  // Add other properties if your session user object has them
+}
+
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
+// --- END IMPORTANT ---
+
+// --- Zod schema for validating incoming blog article data when creating a new article ---
 const blogArticleSchema = z.object({
   title: z.string().min(3, {
     message: "Title must be at least 3 characters.",
@@ -18,26 +32,51 @@ const blogArticleSchema = z.object({
     message: "Content must be at least 10 characters.",
   }),
   coverImage: z.string().url({ message: "Cover image must be a valid URL." }).nullable().optional(),
-  status: z.enum(["PUBLISHED", "DRAFT"], {
+  status: z.enum(["PUBLISHED", "DRAFT"], { // Corrected to uppercase
     errorMap: () => ({ message: "Please select a status." }),
   }),
 });
 
+// --- Utility function for retrying operations with a delay ---
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 1000 // 1 second delay between retries
+): Promise<T> {
+  let attempts = 0;
+  while (attempts < maxRetries) {
+    try {
+      return await operation();
+    } catch (error: unknown) { // Use 'unknown' type for caught error
+      attempts++;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as any)?.code;
 
-// GET (Fetch all published blog articles)
+      console.warn(`Attempt ${attempts}/${maxRetries} failed: ${errorMessage}`);
+      if (errorCode === 'P1001' && attempts < maxRetries) {
+        console.log(`Retrying operation after ${delayMs}ms due to database connection error...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      } else {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Max retries reached, operation failed due to persistent issues.");
+}
+
+// --- GET (Fetch all blog articles for public display) ---
 export async function GET() {
   try {
-    // Apply retry logic for fetching blog articles
     const articles = await retryOperation(async () => {
       return await prisma.blogArticle.findMany({
         where: {
           status: "PUBLISHED", // Only fetch published articles for public display
         },
         orderBy: {
-          createdAt: 'desc', // Newest articles first
+          createdAt: 'desc',
         },
       });
-    }, 3); // Retry 3 times
+    }, 3);
 
     return NextResponse.json(articles, { status: 200 });
   } catch (error) {
@@ -49,10 +88,11 @@ export async function GET() {
   }
 }
 
-// POST (Create a new blog article - assuming only admins can create)
+// --- POST (Create a new blog article) ---
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    // --- IMPORTANT: Cast session to CustomSession ---
+    const session = await getServerSession(authOptions) as CustomSession;
     if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
@@ -68,27 +108,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const newArticle = await retryOperation(async () => {
-        return await prisma.blogArticle.create({
-            data: {
-                ...validatedData.data,
-            },
-        });
-    }, 3);
+    const newArticle = await prisma.blogArticle.create({
+      data: validatedData.data,
+    });
 
+    revalidatePath('/admin/blog');
     revalidatePath('/blog'); // Revalidate the public blog list page
-    revalidatePath('/admin/blog'); // Revalidate the admin blog list page
 
     return NextResponse.json(newArticle, { status: 201 });
 
   } catch (error) {
     console.error("Error creating blog article:", error);
-    if (error instanceof z.ZodError) {
-        return NextResponse.json(
-            { message: "Validation failed", errors: error.flatten() },
-            { status: 400 }
-        );
-    }
     return NextResponse.json(
       { message: "Internal Server Error", error: (error as Error).message },
       { status: 500 }

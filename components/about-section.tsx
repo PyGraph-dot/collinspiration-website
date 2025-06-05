@@ -31,7 +31,7 @@ export default function AboutSection() {
               </p>
               <p className="text-lg text-gray-700 mb-6 leading-relaxed">
                 With a gift for simplifying the complexities of English grammar, he has written this book to provide
-                learners with a comprehensive resource to master the language. Whether you're a student, professional,
+                learners with a comprehensive resource to master the language. Whether you&apos;re a student, professional, {/* Corrected: Escaped apostrophe */}
                 or lifelong learner, he is committed to helping you achieve your English language goals.
               </p>
               <div className="flex flex-wrap gap-4">

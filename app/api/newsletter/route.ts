@@ -51,16 +51,21 @@ export async function POST(request: Request) {
       success: true,
       message: "Thank you for subscribing to our newsletter!",
     })
-  } catch (error: any) {
+  } catch (error: unknown) { // Corrected: Changed 'any' to 'unknown'
     console.error("Error subscribing to newsletter:", error)
     let errorMessage = "Failed to subscribe. Please try again."
-    if (error?.code === "23505") {
+
+    // Safely access properties of the error object
+    if (error && typeof error === 'object' && 'code' in error && error.code === "23505") {
       errorMessage = "This email is already subscribed."
-    } else if (error?.message?.includes("invalid input syntax")) {
+    } else if (error instanceof Error && error.message.includes("invalid input syntax")) { // Check for specific message
       errorMessage = "Please provide a valid email address."
-    } else if (error?.message) {
+    } else if (error instanceof Error) { // Check if it's a standard Error object
       errorMessage = error.message
+    } else if (typeof error === 'string') { // Handle cases where error might be a string
+      errorMessage = error;
     }
+
     return NextResponse.json(
       {
         success: false,

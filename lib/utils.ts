@@ -17,11 +17,16 @@ export async function retryOperation<T>(
   while (attempts < maxRetries) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: unknown) { // Corrected: Changed 'any' to 'unknown'
       attempts++;
-      console.warn(`Attempt ${attempts}/${maxRetries} failed: ${error.message}`);
+      // Safely access error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      // Safely access error code, assuming it might be on an object
+      const errorCode = (error && typeof error === 'object' && 'code' in error) ? (error as { code: string }).code : undefined;
+
+      console.warn(`Attempt ${attempts}/${maxRetries} failed: ${errorMessage}`);
       // Only retry if it's a P1001 (database connection error from Prisma) and we haven't exhausted retries
-      if (error.code === 'P1001' && attempts < maxRetries) {
+      if (errorCode === 'P1001' && attempts < maxRetries) {
         console.log(`Retrying after ${delayMs}ms due to database connection error...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       } else {

@@ -1,7 +1,7 @@
 // components/admin/books/book-table.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react" // Added useCallback
 import Link from "next/link"
 import Image from "next/image"
 import { Edit, Trash2, Filter, ChevronDown, Search } from "lucide-react"
@@ -19,51 +19,40 @@ export default function BookTable() {
   const { toast } = useToast()
   const router = useRouter() // Initialize useRouter
 
-  // Function to fetch books
-  const fetchBooks = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch("/api/books")
-      if (!response.ok) {
-        throw new Error("Failed to fetch books")
-      }
-      const data = await response.json()
-      // Ensure 'category' is populated if your Book type expects it directly
-      // If your API returns flat books without nested category, you might need to adjust Book type
-      if (Array.isArray(data)) {
-        setBooks(data)
-      } else {
-        console.error("Fetched data is not an array:", data)
+  // Function to fetch books, now wrapped in useCallback to stabilize its reference
+  // or, more simply, define it directly inside useEffect if it's only used there.
+  // For this case, defining it inside useEffect is cleaner.
+  useEffect(() => {
+    const fetchBooks = async () => { // Moved fetchBooks inside useEffect
+      try {
+        setIsLoading(true)
+        const response = await fetch("/api/books")
+        if (!response.ok) {
+          throw new Error("Failed to fetch books")
+        }
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          setBooks(data)
+        } else {
+          console.error("Fetched data is not an array:", data)
+          setBooks([])
+        }
+      } catch (error) {
+        console.error("Error fetching books:", error)
         setBooks([])
+        toast({
+          title: "Error",
+          description: "Failed to fetch books. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error("Error fetching books:", error)
-      setBooks([])
-      toast({
-        title: "Error",
-        description: "Failed to fetch books. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
     }
-  }
 
-  useEffect(() => {
     fetchBooks()
-  }, [toast, router]) // Add router as a dependency, though fetchBooks isn't directly dependent on router state here.
-                     // The router.refresh() in BookForm will trigger a re-render and thus this useEffect.
-
-  // Removed: router.events is not available in Next.js App Router's useRouter hook.
-  // The router.refresh() in BookForm.tsx handles revalidation.
-  /*
-  useEffect(() => {
-    router.events?.on('routeChangeComplete', fetchBooks);
-    return () => {
-      router.events?.off('routeChangeComplete', fetchBooks);
-    };
-  }, [router.events]);
-  */
+  }, [toast, router]) // Now fetchBooks is not a dependency, as it's defined inside.
+                     // toast and router are still dependencies as they are used inside fetchBooks.
 
   const handleDelete = async (id: string) => {
     // IMPORTANT: Replace window.confirm with a custom modal UI as window.confirm is not supported in Canvas.

@@ -102,7 +102,7 @@ export default function TestimonialsSection() {
         <div className="text-center mb-16">
           <h2 className="section-title text-3xl font-bold mb-4">Student Testimonials</h2>
           <p className="section-subtitle max-w-3xl mx-auto text-lg text-gray-600">
-            Hear from students and readers who have transformed their English skills through Mr. Collins' educational
+            Hear from students and readers who have transformed their English skills through Mr. Collins&apos; educational {/* Corrected: Escaped apostrophe */}
             books and teaching methods.
           </p>
         </div>
