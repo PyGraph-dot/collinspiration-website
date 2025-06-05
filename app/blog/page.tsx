@@ -10,7 +10,7 @@ interface BlogArticle {
   slug: string;
   content: string;
   coverImage: string | null;
-  status: 'PUBLISHED' | 'DRAFT';
+  status: 'PUBLISHED' | 'DRAFT'; // Assuming these match your Prisma enum
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,11 +20,19 @@ export default async function BlogPage() {
   let errorFetching = false;
 
   try {
+    // Determine the base URL for API calls.
+    // NEXT_PUBLIC_APP_URL is ideal for build-time fetches from Server Components.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'; // Fallback for safety
+
     // Fetch articles from your API route
     const response = await retryOperation(async () => {
-        return await fetch(`${process.env.NEXT_PUBLIC_NEXTAUTH_URL}/api/blog`, {
-            cache: 'no-store' // Ensure fresh data on every request
-        });
+        // --- REMOVED: cache: 'no-store' ---
+        // Removing cache: 'no-store' allows Next.js to cache data during build for static generation.
+        // For dynamic data, Next.js will default to dynamic fetch if no-store is omitted,
+        // but for static pages, it will attempt to cache during build.
+        // If you need revalidation, consider `next: { revalidate: 60 }`
+        // or `export const revalidate = 60;` in the page itself.
+        return await fetch(`${baseUrl}/api/blog`);
     }, 3);
 
     if (!response.ok) {
@@ -66,11 +74,11 @@ export default async function BlogPage() {
                     <Image
                       src={article.coverImage}
                       alt={article.title}
-                      layout="fill"
-                      objectFit="cover"
+                      fill
+                      style={{ objectFit: 'cover' }}
                       className="rounded-t-lg"
                       onError={(e) => {
-                        e.currentTarget.src = '/placeholder.svg'; // Fallback image on error
+                        e.currentTarget.src = '/placeholder.svg';
                         e.currentTarget.alt = 'Image failed to load';
                       }}
                     />
@@ -88,7 +96,7 @@ export default async function BlogPage() {
                     {article.content}
                   </p>
                   <div className="flex justify-between items-center text-xs text-gray-500">
-                    <span>Published on {format(article.createdAt, 'MMM dd, yyyy')}</span>
+                    <span>Published on {format(article.createdAt, 'MMM dd,yyyy')}</span>
                     <span className="font-medium text-blue-600">Read More &rarr;</span>
                   </div>
                 </div>
