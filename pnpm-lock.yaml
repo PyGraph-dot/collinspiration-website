@@ -199,7 +199,7 @@ importers:
         specifier: ^18.3.23
         version: 18.3.23
       '@types/react-dom':
-        specifier: ^18.3.1
+        specifier: ^18.3.7
         version: 18.3.7(@types/react@18.3.23)
       '@types/recharts':
         specifier: ^2.0.1
@@ -208,7 +208,7 @@ importers:
         specifier: ^10.4.21
         version: 10.4.21(postcss@8.5.4)
       dotenv-cli:
-        specifier: ^7.4.2
+        specifier: ^7.4.4
         version: 7.4.4
       eslint:
         specifier: ^9.28.0
