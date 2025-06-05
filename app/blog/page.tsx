@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { retryOperation } from "@/lib/utils";
+// You might still use retryOperation for robustness if network issues are a concern,
+// but for direct DB access during build, it's less critical.
+// import { retryOperation } from "@/lib/utils";
+
+// Import your Prisma client instance
+import prisma from "@/lib/prisma"; // Adjust path if your prisma client is elsewhere
 
 // Define a type for your blog articles (should match Prisma model)
 interface BlogArticle {
@@ -20,30 +25,18 @@ export default async function BlogPage() {
   let errorFetching = false;
 
   try {
-    // Determine the base URL for API calls.
-    // NEXT_PUBLIC_APP_URL is ideal for build-time fetches from Server Components.
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'; // Fallback for safety
+    // --- IMPORTANT CHANGE: Fetch articles directly from Prisma ---
+    articles = await prisma.blogArticle.findMany({
+      where: {
+        status: 'PUBLISHED', // Only fetch published articles for public display
+      },
+      orderBy: {
+        createdAt: 'desc', // Order by creation date, newest first
+      },
+    });
 
-    // Fetch articles from your API route
-    const response = await retryOperation(async () => {
-        // --- REMOVED: cache: 'no-store' ---
-        // Removing cache: 'no-store' allows Next.js to cache data during build for static generation.
-        // For dynamic data, Next.js will default to dynamic fetch if no-store is omitted,
-        // but for static pages, it will attempt to cache during build.
-        // If you need revalidation, consider `next: { revalidate: 60 }`
-        // or `export const revalidate = 60;` in the page itself.
-        return await fetch(`${baseUrl}/api/blog`);
-    }, 3);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch blog articles: ${response.statusText}`);
-    }
-    articles = await response.json();
-    // Ensure createdAt is parsed as Date object for formatting
-    articles = articles.map(article => ({
-      ...article,
-      createdAt: new Date(article.createdAt)
-    }));
+    // Prisma already returns Date objects, so no need for map to parse dates here.
+    // However, if you had complex types, you might still want to transform them.
 
   } catch (error) {
     console.error("Error fetching blog articles for public page:", error);
