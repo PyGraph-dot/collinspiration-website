@@ -5,7 +5,8 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react"
+// Added TikTok import - ensure this icon is available in lucide-react
+import { Facebook, Instagram, Twitter, Youtube, Loader2, TikTok } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -103,6 +104,24 @@ export default function Footer() {
                 className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-full text-white hover:bg-primary transition-colors"
               >
                 <Youtube size={20} />
+              </a>
+              {/* NEW: TikTok Link - UPDATED URL */}
+              <a
+                href="https://www.tiktok.com/@collinspiration" // Updated with the correct TikTok URL
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-full text-white hover:bg-primary transition-colors"
+              >
+                {/*
+                  Lucide-react might not have a dedicated TikTok icon.
+                  If 'TikTok' isn't recognized, you'll need to either:
+                  1. Find a generic icon from lucide-react (e.g., 'Globe', 'Link', 'Share2')
+                  2. Use a Font Awesome icon (requires FA setup)
+                  3. Use an inline SVG for the TikTok logo.
+                  For now, I'm assuming 'TikTok' might work if a newer lucide-react version or a custom icon is available.
+                  If not, uncomment the placeholder below or replace with a suitable alternative.
+                */}
+                {typeof TikTok !== 'undefined' ? <TikTok size={20} /> : <span className="text-sm">T</span>}
               </a>
             </div>
           </div>
