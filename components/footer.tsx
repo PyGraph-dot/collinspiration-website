@@ -5,8 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-// Removed TikTok from lucide-react import as it's not available
-import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react"
+import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react" // Removed TikTok as it's not available
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -105,27 +104,27 @@ export default function Footer() {
               >
                 <Youtube size={20} />
               </a>
-              {/* NEW: TikTok Link - Using inline SVG for TikTok logo */}
+              {/* NEW: TikTok Link - Corrected inline SVG for TikTok logo */}
               <a
                 href="https://www.tiktok.com/@collinspiration"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-full text-white hover:bg-primary transition-colors"
               >
-                {/* Inline SVG for TikTok logo - ensures it renders without lucide-react dependency */}
+                {/* Corrected Inline SVG for TikTok logo */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
-                  fill="currentColor"
+                  fill="none" // Changed fill to none, using stroke for outline consistency
                   stroke="currentColor"
-                  strokeWidth="0"
+                  strokeWidth="2" // Adjusted stroke width for better visibility
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="lucide lucide-tiktok" // Keeping lucide class for styling consistency
+                  className="lucide lucide-tiktok"
                 >
-                  <path d="M9 12h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 1 2-2h2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 1 2-2h2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9zM19 3h-2V1h-2v2H3v2h2v6H3v2h2v6H3v2h2v2h2v-2h2v2h2v-2h2v2h2v-2h2v2h2v-2h2v-2h-2V9h-2v2h-2V9h-2V7h-2V5h-2V3zm-2 2h-2V3h2v2zM5 5h2V3H5v2zM5 19v-2h2v2H5zm0-4v-2h2v2H5zm0-4v-2h2v2H5zm0-4V5h2v2H5zm4 10v-2h2v2H9zm0-4v-2h2v2H9zm0-4v-2h2v2H9zm0-4V5h2v2H9zm4 10v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V5h2v2h-2zm4 10v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V5h2v2h-2z" />
+                  <path d="M9 9a3 3 0 0 1 3 3v2a3 3 0 0 0 3 3h2v-3.34a.83.83 0 0 1 .44-.72L21 9V3h-2.18a2 2 0 0 0-1.57-.75A4.9 4.9 0 0 0 16 5.25V7h-2v2h2v4a2 2 0 0 1-2 2h-1.66a2 2 0 0 1-1.42-.6L9 9Z" />
                 </svg>
               </a>
             </div>
