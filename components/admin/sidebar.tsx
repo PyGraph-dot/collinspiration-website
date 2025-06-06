@@ -1,3 +1,4 @@
+// components/admin/sidebar.tsx
 "use client"
 
 import { useState } from "react"
@@ -87,6 +88,7 @@ export default function AdminSidebar() {
             ))}
           </nav>
 
+          {/* Removed the extra '...' div */}
           <div className="px-6 mt-6 mb-4 text-gray-500 text-xs font-semibold uppercase">Account</div>
 
           <Link

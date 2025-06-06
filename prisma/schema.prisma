@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -11,25 +10,17 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  // IMPORTANT CHANGE: Renamed from 'hashedPassword' to 'password'
-  // and made it non-nullable (String instead of String?) for NextAuth.js credentials provider
-  password      String    
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Fields for NextAuth Prisma Adapter - Ensure these are present
-  // 'emailVerifiedAt' was the original cause of P2022 error, now it's correctly mapped
-  emailVerified DateTime? @map("emailVerifiedAt")
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  
-  // If User can author blog articles, you might add this relation later:
-  // blogArticles  BlogArticle[] 
+  id              String    @id @default(cuid())
+  name            String?
+  email           String    @unique
+  password        String
+  role            Role      @default(USER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  emailVerified   DateTime? @map("emailVerifiedAt")
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
 }
 
 model Account {
@@ -69,27 +60,27 @@ model Category {
   id          String    @id @default(cuid())
   name        String    @unique
   description String?
-  status      String    @default("active") // Assuming 'active'/'inactive' or similar string status
+  status      String    @default("active")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   books       Book[]
 }
 
 model Book {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  coverImage  String? // Nullable if not always required
-  price       Float
-  type        BookType  @default(MY_BOOK) // Using BookType enum
-  amazonLink  String?
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  coverImage   String?
+  price        Float
+  type         BookType  @default(MY_BOOK)
+  amazonLink   String?
   nigerianLink String?
-  status      BookStatus @default(DRAFT) // Using BookStatus enum
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status       BookStatus @default(DRAFT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
 }
 
 // Enum for book types
@@ -107,16 +98,12 @@ enum BookStatus {
 model BlogArticle { 
   id          String        @id @default(cuid())
   title       String
-  slug        String        @unique // For SEO-friendly URLs
+  slug        String        @unique
   content     String
   coverImage  String?
-  status      ArticleStatus @default(DRAFT) // Using ArticleStatus enum
+  status      ArticleStatus @default(DRAFT)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
-  // If you want to link blog articles to a User (e.g., author), add this:
-  // authorId    String?
-  // author      User?         @relation(fields: [authorId], references: [id])
 }
 
 // Enum for blog article status
@@ -125,12 +112,25 @@ enum ArticleStatus {
   DRAFT
 }
 
+// NEW MODEL: ContactMessage
+// This model maps to the 'contact_messages' table in your database
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages") // Explicitly map to the existing table name
+}
+
 model Testimonial {
   id        String   @id @default(cuid())
   author    String   @db.VarChar(255)
   content   String   @db.Text
-  rating    Int      @default(5) // Example: 1-5 stars
-  approved  Boolean  @default(false) // Only approved testimonials show publicly
+  rating    Int      @default(5)
+  approved  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

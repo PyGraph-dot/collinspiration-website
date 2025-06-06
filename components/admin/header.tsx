@@ -1,3 +1,4 @@
+// components/admin/header.tsx
 "use client"
 
 import { useState } from "react"
@@ -15,16 +16,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { usePathname } from "next/navigation"; // Import usePathname
 
-export default function AdminHeader() {
-  const { data: session } = useSession()
-  const [notifications, _setNotifications] = useState(3) // Corrected: Renamed setNotifications to _setNotifications
+interface AdminHeaderProps {
+  // Add a prop to dynamically set the page title
+  pageTitle?: string;
+}
+
+// Map pathname to a readable title
+const getPageTitleFromPathname = (pathname: string) => {
+  if (pathname === '/admin') return 'Dashboard';
+  if (pathname.startsWith('/admin/books')) return 'Books';
+  if (pathname.startsWith('/admin/categories')) return 'Categories';
+  if (pathname.startsWith('/admin/analytics')) return 'Analytics';
+  if (pathname.startsWith('/admin/settings')) return 'Settings';
+  if (pathname.startsWith('/admin/account')) return 'Account';
+  if (pathname.startsWith('/admin/notifications')) return 'Notifications';
+  return 'Admin Panel'; // Default fallback
+};
+
+
+export default function AdminHeader({ pageTitle }: AdminHeaderProps) {
+  const { data: session } = useSession();
+  const [notifications, _setNotifications] = useState(3);
+  const pathname = usePathname(); // Get current pathname
+
+  // Determine the title based on prop or pathname
+  const currentTitle = pageTitle || getPageTitleFromPathname(pathname);
 
   return (
     <header className="bg-white shadow-sm z-10 sticky top-0">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center lg:ml-64">
-          <h1 className="text-xl font-semibold">Dashboard</h1>
+          {/* Display dynamic title */}
+          <h1 className="text-xl font-semibold">{currentTitle}</h1>
         </div>
 
         <div className="flex items-center space-x-6">
@@ -45,6 +70,7 @@ export default function AdminHeader() {
                 <Bell size={20} />
                 {notifications > 0 && (
                   <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
+                    {/* Adjusted padding for better visibility */}
                     {notifications}
                   </span>
                 )}
@@ -58,7 +84,7 @@ export default function AdminHeader() {
                   <div className="flex flex-col space-y-1">
                     <span className="font-medium">New book added</span>
                     <span className="text-sm text-muted-foreground">
-                      You added &quot;Creative Marketing&quot; to your collection {/* Corrected: Escaped quotes */}
+                      You added &quot;Creative Marketing&quot; to your collection
                     </span>
                     <span className="text-xs text-gray-400">2 hours ago</span>
                   </div>
@@ -66,7 +92,7 @@ export default function AdminHeader() {
                 <DropdownMenuItem className="py-3 cursor-pointer">
                   <div className="flex flex-col space-y-1">
                     <span className="font-medium">New sale</span>
-                    <span className="text-sm text-muted-foreground">You sold 5 copies of &quot;Financial Freedom&quot;</span> {/* Corrected: Escaped quotes */}
+                    <span className="text-sm text-muted-foreground">You sold 5 copies of &quot;Financial Freedom&quot;</span>
                     <span className="text-xs text-gray-400">5 hours ago</span>
                   </div>
                 </DropdownMenuItem>
@@ -92,8 +118,8 @@ export default function AdminHeader() {
               <div className="flex items-center space-x-3 cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden">
                   <Image
-                    src="https://placehold.co/40x40/000000/FFFFFF?text=AVATAR" // Placeholder image
-                    alt="User Avatar" // Updated alt text
+                    src="/images/avatar.jpg"
+                    alt="User"
                     width={40}
                     height={40}
                     className="w-full h-full object-cover"
@@ -101,7 +127,8 @@ export default function AdminHeader() {
                 </div>
                 <div className="hidden md:block">
                   <div className="text-sm font-medium">{session?.user?.name || "Admin User"}</div>
-                  <div className="text-xs text-gray-500">Administrator</div>
+                  {/* Adjusted spacing for role text */}
+                  <div className="text-xs text-gray-500 mt-0.5">Administrator</div>
                 </div>
               </div>
             </DropdownMenuTrigger>
