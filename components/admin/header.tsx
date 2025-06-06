@@ -92,8 +92,8 @@ export default function AdminHeader() {
               <div className="flex items-center space-x-3 cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden">
                   <Image
-                    src="/images/avatar.jpg"
-                    alt="User"
+                    src="https://placehold.co/40x40/000000/FFFFFF?text=AVATAR" // Placeholder image
+                    alt="User Avatar" // Updated alt text
                     width={40}
                     height={40}
                     className="w-full h-full object-cover"
