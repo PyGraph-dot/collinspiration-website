@@ -5,8 +5,8 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-// Added TikTok import - ensure this icon is available in lucide-react
-import { Facebook, Instagram, Twitter, Youtube, Loader2, TikTok } from "lucide-react"
+// Removed TikTok from lucide-react import as it's not available
+import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -105,23 +105,28 @@ export default function Footer() {
               >
                 <Youtube size={20} />
               </a>
-              {/* NEW: TikTok Link - UPDATED URL */}
+              {/* NEW: TikTok Link - Using inline SVG for TikTok logo */}
               <a
-                href="https://www.tiktok.com/@collinspiration" // Updated with the correct TikTok URL
+                href="https://www.tiktok.com/@collinspiration"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-full text-white hover:bg-primary transition-colors"
               >
-                {/*
-                  Lucide-react might not have a dedicated TikTok icon.
-                  If 'TikTok' isn't recognized, you'll need to either:
-                  1. Find a generic icon from lucide-react (e.g., 'Globe', 'Link', 'Share2')
-                  2. Use a Font Awesome icon (requires FA setup)
-                  3. Use an inline SVG for the TikTok logo.
-                  For now, I'm assuming 'TikTok' might work if a newer lucide-react version or a custom icon is available.
-                  If not, uncomment the placeholder below or replace with a suitable alternative.
-                */}
-                {typeof TikTok !== 'undefined' ? <TikTok size={20} /> : <span className="text-sm">T</span>}
+                {/* Inline SVG for TikTok logo - ensures it renders without lucide-react dependency */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  strokeWidth="0"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-tiktok" // Keeping lucide class for styling consistency
+                >
+                  <path d="M9 12h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 1 2-2h2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 1 2-2h2V9a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2a2 2 0 0 1-2-2H9zM19 3h-2V1h-2v2H3v2h2v6H3v2h2v6H3v2h2v2h2v-2h2v2h2v-2h2v2h2v-2h2v2h2v-2h2v-2h-2V9h-2v2h-2V9h-2V7h-2V5h-2V3zm-2 2h-2V3h2v2zM5 5h2V3H5v2zM5 19v-2h2v2H5zm0-4v-2h2v2H5zm0-4v-2h2v2H5zm0-4V5h2v2H5zm4 10v-2h2v2H9zm0-4v-2h2v2H9zm0-4v-2h2v2H9zm0-4V5h2v2H9zm4 10v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V5h2v2h-2zm4 10v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4v-2h2v2h-2zm0-4V5h2v2h-2z" />
+                </svg>
               </a>
             </div>
           </div>
