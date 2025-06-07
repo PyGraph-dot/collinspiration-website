@@ -1,0 +1,136 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String    @unique
+  password        String
+  role            Role      @default(USER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  emailVerified   DateTime? @map("emailVerifiedAt")
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enum for user roles (e.g., for authorization)
+enum Role {
+  USER
+  ADMIN
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  books       Book[]
+}
+
+model Book {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  coverImage   String?
+  price        Float
+  type         BookType  @default(MY_BOOK)
+  amazonLink   String?
+  nigerianLink String?
+  status       BookStatus @default(DRAFT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
+}
+
+// Enum for book types
+enum BookType {
+  MY_BOOK
+  AFFILIATE
+}
+
+// Enum for book status
+enum BookStatus {
+  PUBLISHED
+  DRAFT
+}
+
+model BlogArticle { 
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  content     String
+  coverImage  String?
+  status      ArticleStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// Enum for blog article status
+enum ArticleStatus {
+  PUBLISHED
+  DRAFT
+}
+
+// NEW MODEL: ContactMessage
+// This model maps to the 'contact_messages' table in your database
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages") // Explicitly map to the existing table name
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  author    String   @db.VarChar(255)
+  content   String   @db.Text
+  rating    Int      @default(5)
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

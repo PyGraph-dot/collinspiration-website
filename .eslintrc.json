@@ -1,0 +1,10 @@
+// .eslintrc.json
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Add any custom rules here if necessary, for example:
+    // "react/no-unescaped-entities": "off",
+    // "@next/next/no-img-element": "off"
+    // Keep it minimal to avoid conflicts and deprecation issues.
+  }
+}
