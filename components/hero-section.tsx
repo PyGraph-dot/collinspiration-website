@@ -29,7 +29,7 @@ export default function HeroSection() {
               Explore Books
             </Link>
             <Link href="#about" className="btn-secondary">
-              About Mr. Collins
+              About Collins
             </Link>
           </div>
         </div>

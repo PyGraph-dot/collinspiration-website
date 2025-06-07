@@ -35,6 +35,8 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
       <AdminSidebar />
 
       {/* Main content area */}
+      {/* Added lg:ml-64 to push content to the right on large screens and above,
+          accounting for the fixed-width sidebar. */}
       <div className="flex-1 flex flex-col lg:ml-64">
         {/* Admin Header */}
         <AdminHeader />

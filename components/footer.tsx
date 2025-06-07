@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react"
+import { Facebook, Instagram, Twitter, Youtube, Loader2 } from "lucide-react" // Removed TikTok as it's not available
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -104,25 +104,25 @@ export default function Footer() {
               >
                 <Youtube size={20} />
               </a>
-              {/* Corrected TikTok Link with inline SVG for consistency */}
+              {/* NEW: TikTok Link - Corrected inline SVG for TikTok logo */}
               <a
                 href="https://www.tiktok.com/@collinspiration"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-full text-white hover:bg-primary transition-colors"
               >
-                {/* Updated Inline SVG for TikTok logo to be filled like other icons */}
+                {/* Corrected Inline SVG for TikTok logo */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
-                  fill="currentColor" // Changed fill to currentColor for a filled icon
-                  // stroke="currentColor" // Removed stroke to ensure it's filled
-                  // strokeWidth="2" // Removed stroke-related attributes
-                  // strokeLinecap="round"
-                  // strokeLinejoin="round"
-                  className="lucide lucide-tiktok" // Keeping class name for consistency
+                  fill="none" // Changed fill to none, using stroke for outline consistency
+                  stroke="currentColor"
+                  strokeWidth="2" // Adjusted stroke width for better visibility
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-tiktok"
                 >
                   <path d="M9 9a3 3 0 0 1 3 3v2a3 3 0 0 0 3 3h2v-3.34a.83.83 0 0 1 .44-.72L21 9V3h-2.18a2 2 0 0 0-1.57-.75A4.9 4.9 0 0 0 16 5.25V7h-2v2h2v4a2 2 0 0 1-2 2h-1.66a2 2 0 0 1-1.42-.6L9 9Z" />
                 </svg>
@@ -192,7 +192,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-gray-500 mb-4 sm:mb-0">
-            &copy; {new Date().getFullYear()} Collinspiration. All rights reserved.
+            © {new Date().getFullYear()} Collinspiration. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">

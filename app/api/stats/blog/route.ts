@@ -1,4 +1,4 @@
-// app/api/stats/messages/route.ts
+// app/api/stats/blog/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -29,11 +29,11 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const totalMessages = await prisma.contactMessage.count(); // Correctly count contact messages
+    const totalBlogPosts = await prisma.blogPost.count(); // Assuming you have a BlogPost model
 
-    return NextResponse.json({ count: totalMessages }, { status: 200 });
+    return NextResponse.json({ count: totalBlogPosts }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching total messages count:", error);
+    console.error("Error fetching total blog posts count:", error);
     return NextResponse.json(
       { message: "Internal Server Error", error: (error as Error).message },
       { status: 500 }

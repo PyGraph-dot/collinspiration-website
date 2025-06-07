@@ -1,4 +1,3 @@
-// tsconfig.json
 {
   "compilerOptions": {
     "target": "es5", // Target ECMAScript 5 for broad browser compatibility
