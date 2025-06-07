@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,7 @@ import {
   FormControl,
   FormDescription,
   FormField,
-  FormItem,
+  FormItem, // Make sure FormItem is imported
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
@@ -38,26 +39,15 @@ const formSchema = z.object({
     message: "Description must be at least 10 characters.",
   }),
   coverImage: z.any().optional(), // Can be File object or string URL
-<<<<<<< HEAD
   // Use z.coerce.number() for more robust type conversion from input, then positive()
   price: z.coerce.number().positive({ message: "Price must be a positive number." }),
   categoryId: z.string().min(1, { message: "Please select a category." }),
   type: z.enum(["MY_BOOK", "AFFILIATE"], {
-=======
-  // CORRECTED: Use z.coerce.number() for more robust type conversion from input, then positive()
-  price: z.coerce.number().positive({ message: "Price must be a positive number." }),
-  categoryId: z.string().min(1, { message: "Please select a category." }),
-  type: z.enum(["MY_BOOK", "AFFILIATE"], { // Corrected to uppercase
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
     errorMap: () => ({ message: "Please select a book type." }),
   }),
   amazonLink: z.string().url("Invalid Amazon link URL").optional().or(z.literal('')),
   nigerianLink: z.string().url("Invalid Nigerian link URL").optional().or(z.literal('')),
-<<<<<<< HEAD
   status: z.enum(["PUBLISHED", "DRAFT"], {
-=======
-  status: z.enum(["PUBLISHED", "DRAFT"], { // Corrected to uppercase
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
     errorMap: () => ({ message: "Please select a status." }),
   }),
 });
@@ -77,11 +67,7 @@ export function BookForm({ initialData, categories }: BookFormProps) {
       title: initialData.title || "",
       description: initialData.description || "",
       coverImage: initialData.coverImage || undefined,
-<<<<<<< HEAD
       // Ensure price is explicitly a number here, even if it's 0
-=======
-      // CORRECTED: Ensure price is explicitly a number here, even if it's 0
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
       price: Number(initialData.price) || 0,
       categoryId: initialData.categoryId || "",
       type: initialData.type || "MY_BOOK",
@@ -106,11 +92,7 @@ export function BookForm({ initialData, categories }: BookFormProps) {
     try {
       let coverImageUrl: string | null = initialData?.coverImage || null; // Initialize with existing or null
 
-<<<<<<< HEAD
       // Handle actual image upload to Cloudinary
-=======
-      // --- NEW: Handle actual image upload to Cloudinary ---
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
       if (values.coverImage instanceof File) {
         toast.info("Uploading image...");
         const formData = new FormData();
@@ -213,11 +195,7 @@ export function BookForm({ initialData, categories }: BookFormProps) {
                 <Textarea placeholder="Provide a detailed description of the book" {...field} rows={5} />
               </FormControl>
               <FormDescription>
-<<<<<<< HEAD
-                A comprehensive overview of the book&apos;s content. {/* CORRECTED: book's */}
-=======
-                A comprehensive overview of the book's content.
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
+                A comprehensive overview of the book&apos;s content.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -242,11 +220,7 @@ export function BookForm({ initialData, categories }: BookFormProps) {
                 />
               </FormControl>
               <FormDescription>
-<<<<<<< HEAD
-                Upload the book&apos;s cover image (JPG, PNG, GIF). {/* CORRECTED: book's */}
-=======
-                Upload the book's cover image (JPG, PNG, GIF).
->>>>>>> e118d2c8cc306bdc11da60a49250b9a6bd9a7f11
+                Upload the book&apos;s cover image (JPG, PNG, GIF).
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -256,7 +230,17 @@ export function BookForm({ initialData, categories }: BookFormProps) {
         {initialData?.coverImage && (
           <div className="mt-2">
             <FormLabel>Current Cover:</FormLabel>
-            <img src={initialData.coverImage} alt="Current Cover" className="w-32 h-32 object-cover rounded-md mt-1" />
+            <Image
+              src={initialData.coverImage}
+              alt="Current Cover"
+              width={128} // Provide appropriate width
+              height={128} // Provide appropriate height
+              className="object-cover rounded-md mt-1"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.svg"; // Fallback to a local placeholder if needed
+                e.currentTarget.alt = "Image not found";
+              }}
+            />
           </div>
         )}
 
@@ -330,14 +314,14 @@ export function BookForm({ initialData, categories }: BookFormProps) {
                       My Book (Soft Copy - Naira)
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-3 space-y-0"> {/* FIXED: Closing FormItem */}
                     <FormControl>
                       <RadioGroupItem value="AFFILIATE" />
                     </FormControl>
                     <FormLabel className="font-normal">
                       Affiliate (Hard Copy - Dollar)
                     </FormLabel>
-                  </FormItem>
+                  </FormItem> {/* FIXED: Closing FormItem */}
                 </RadioGroup>
               </FormControl>
               <FormMessage />
@@ -402,14 +386,14 @@ export function BookForm({ initialData, categories }: BookFormProps) {
                       Published
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-3 space-y-0"> {/* FIXED: Closing FormItem */}
                     <FormControl>
                       <RadioGroupItem value="DRAFT" />
                     </FormControl>
                     <FormLabel className="font-normal">
                       Draft
                     </FormLabel>
-                  </FormItem>
+                  </FormItem> {/* FIXED: Closing FormItem */}
                 </RadioGroup>
               </FormControl>
               <FormMessage />

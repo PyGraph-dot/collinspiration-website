@@ -59,7 +59,7 @@ export default function CookiePolicyPage() {
             <strong className="font-semibold">Browser Controls:</strong> Most web browsers allow you to manage your cookie preferences through their settings. You can set your browser to refuse all cookies or to indicate when a cookie is being sent. However, some features or services on our Website may not function properly without cookies.
           </li>
           <li>
-            <strong className="font-semibold">Third-Party Cookies:</strong> Our Website may use third-party cookies for analytics or advertising. You can typically opt-out of these through the respective third-party's opt-out programs.
+            <strong className="font-semibold">Third-Party Cookies:</strong> Our Website may use third-party cookies for analytics or advertising. You can typically opt-out of these through the respective third-party&apos;s opt-out programs. {/* FIXED: Escaped apostrophe */}
           </li>
         </ul>
       </section>
