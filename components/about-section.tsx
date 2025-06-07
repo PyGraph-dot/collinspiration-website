@@ -36,7 +36,7 @@ export default function AboutSection() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="#contact" className="btn-primary">
-                  Contact Mr. Collins
+                  Contact Collins
                 </Link>
                 <Link href="#testimonials" className="btn-tertiary">
                   Read Testimonials

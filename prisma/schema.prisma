@@ -10,17 +10,17 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  name            String?
-  email           String    @unique
-  password        String
-  role            Role      @default(USER)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  emailVerified   DateTime? @map("emailVerifiedAt")
-  image           String?
-  accounts        Account[]
-  sessions        Session[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified DateTime? @map("emailVerifiedAt")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
 }
 
 model Account {
@@ -64,23 +64,25 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   books       Book[]
+
+  @@map("Category") // ADDED THIS LINE: Explicitly map to the table named "Category" in your DB
 }
 
 model Book {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   title        String
   description  String
   coverImage   String?
   price        Float
-  type         BookType  @default(MY_BOOK)
+  type         BookType   @default(MY_BOOK)
   amazonLink   String?
   nigerianLink String?
   status       BookStatus @default(DRAFT)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   categoryId   String
-  category     Category  @relation(fields: [categoryId], references: [id])
+  category     Category   @relation(fields: [categoryId], references: [id])
 }
 
 // Enum for book types

@@ -3,6 +3,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image" // Import Image component
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, BookOpen, Tag, BarChart, Settings, User, LogOut, Menu, X } from "lucide-react"
 
@@ -62,7 +63,16 @@ export default function AdminSidebar() {
         }`}
       >
         <div className="p-6 border-b">
-          <h1 className="font-pacifico text-2xl text-primary">Collinspiration</h1>
+          {/* Replaced h1 with Image component for the logo */}
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png" // Path to your Collinspiration logo
+              alt="Collinspiration Admin"
+              width={180} // Adjust width as needed for the sidebar
+              height={50} // Adjust height as needed for the sidebar
+              className="h-10 w-auto object-contain" // Tailwind classes for sizing and fit
+            />
+          </Link>
         </div>
 
         <div className="py-4">
@@ -88,7 +98,6 @@ export default function AdminSidebar() {
             ))}
           </nav>
 
-          {/* Removed the extra '...' div */}
           <div className="px-6 mt-6 mb-4 text-gray-500 text-xs font-semibold uppercase">Account</div>
 
           <Link
