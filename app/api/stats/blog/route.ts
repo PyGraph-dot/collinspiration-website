@@ -29,7 +29,8 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const totalBlogPosts = await prisma.blogPost.count(); // Assuming you have a BlogPost model
+    // CORRECTED: Changed prisma.blogPost.count() to prisma.blogArticle.count()
+    const totalBlogPosts = await prisma.blogArticle.count(); 
 
     return NextResponse.json({ count: totalBlogPosts }, { status: 200 });
   } catch (error) {
