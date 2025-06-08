@@ -1,18 +1,34 @@
-import { NextResponse } from "next/server"
-import { sql } from "@/lib/db"
-import { z } from "zod"
+// app/api/newsletter/route.ts
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma"; // Import your Prisma client
+import { z } from "zod";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth"; // Your NextAuth configuration
+import type { Session } from "next-auth";
+
+// Define a type for the user in the session that includes the role (for auth)
+interface SessionUser {
+  id: string;
+  email: string;
+  role: "ADMIN" | "USER";
+}
+
+interface CustomSession extends Session {
+  user?: SessionUser;
+}
 
 // Zod schema for newsletter subscription
 const NewsletterSchema = z.object({
   email: z.string().email("Please provide a valid email address."),
-})
+});
 
+// Handler for POST requests (submitting the newsletter form)
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json();
 
-    // Zod validation
-    const parsed = NewsletterSchema.safeParse(body)
+    // Validate the incoming data against the schema
+    const parsed = NewsletterSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -20,49 +36,54 @@ export async function POST(request: Request) {
           message: "Validation failed. Please check the highlighted fields.",
           errors: parsed.error.flatten().fieldErrors,
         },
-        { status: 400 },
-      )
+        { status: 400 }
+      );
     }
-    const data = parsed.data
+    const { email } = parsed.data;
 
-    // Check if email already exists
-    const existingSubscriber = await sql`
-      SELECT id FROM newsletter_subscribers
-      WHERE email = ${data.email}
-    `
+    // Use Prisma to check if email already exists
+    const existingSubscriber = await prisma.newsletterSubscriber.findUnique({
+      where: { email: email },
+    });
 
-    if (existingSubscriber.length > 0) {
-      return NextResponse.json({
+    if (existingSubscriber) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: "You're already subscribed to our newsletter!",
+        },
+        { status: 200 }
+      );
+    }
+
+    // Use Prisma to add new subscriber
+    await prisma.newsletterSubscriber.create({
+      data: {
+        email: email,
+      },
+    });
+
+    return NextResponse.json(
+      {
         success: true,
-        message: "You're already subscribed to our newsletter!",
-      })
-    }
+        message: "Thank you for subscribing to our newsletter!",
+      },
+      { status: 201 }
+    );
 
-    // Add new subscriber
-    await sql`
-      INSERT INTO newsletter_subscribers (
-        email
-      ) VALUES (
-        ${data.email}
-      )
-    `
+  } catch (error: unknown) {
+    console.error("Error subscribing to newsletter:", error);
+    let errorMessage = "Failed to subscribe. Please try again.";
 
-    return NextResponse.json({
-      success: true,
-      message: "Thank you for subscribing to our newsletter!",
-    })
-  } catch (error: unknown) { // Corrected: Changed 'any' to 'unknown'
-    console.error("Error subscribing to newsletter:", error)
-    let errorMessage = "Failed to subscribe. Please try again."
-
-    // Safely access properties of the error object
-    if (error && typeof error === 'object' && 'code' in error && error.code === "23505") {
-      errorMessage = "This email is already subscribed."
-    } else if (error instanceof Error && error.message.includes("invalid input syntax")) { // Check for specific message
-      errorMessage = "Please provide a valid email address."
-    } else if (error instanceof Error) { // Check if it's a standard Error object
-      errorMessage = error.message
-    } else if (typeof error === 'string') { // Handle cases where error might be a string
+    if ((error as any).code === 'P2002' && (error as any).meta?.target?.includes('email')) {
+        errorMessage = "This email is already subscribed.";
+        return NextResponse.json(
+            { success: false, error: errorMessage },
+            { status: 409 }
+        );
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
       errorMessage = error;
     }
 
@@ -71,7 +92,41 @@ export async function POST(request: Request) {
         success: false,
         error: errorMessage,
       },
-      { status: 500 },
-    )
+      { status: 500 }
+    );
+  }
+}
+
+// Handler for GET requests (fetching all newsletter subscribers - typically for admin)
+export async function GET() {
+  try {
+    // --- Authorization Check for Admin Access ---
+    const session = await getServerSession(authOptions) as CustomSession;
+    if (!session || !session.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    // --- End Authorization Check ---
+
+    // Fetch all newsletter subscribers from the database
+    const subscribers = await prisma.newsletterSubscriber.findMany({
+      orderBy: {
+        subscribedAt: 'desc', // Order by newest subscriptions first
+      },
+      select: { // Select only necessary fields
+        id: true,
+        email: true,
+        subscribedAt: true,
+      }
+    });
+
+    // Return the subscribers
+    return NextResponse.json(subscribers, { status: 200 });
+
+  } catch (error) {
+    console.error("Error fetching newsletter subscribers:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }

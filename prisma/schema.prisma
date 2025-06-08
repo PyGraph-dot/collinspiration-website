@@ -65,7 +65,7 @@ model Category {
   updatedAt   DateTime  @updatedAt
   books       Book[]
 
-  @@map("Category") // ADDED THIS LINE: Explicitly map to the table named "Category" in your DB
+  @@map("Category") // Explicitly map to the table named "Category" in your DB
 }
 
 model Book {
@@ -135,4 +135,14 @@ model Testimonial {
   approved  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// NEW MODEL: NewsletterSubscriber
+// This model will map to a 'newsletter_subscribers' table in your database
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  subscribedAt DateTime @default(now())
+
+  @@map("newsletter_subscribers") // Explicitly map to the 'newsletter_subscribers' table
 }
